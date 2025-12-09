@@ -53,11 +53,16 @@ export class LlamaParseService {
       const { LlamaParseReader } = llamaIndexModule;
       
       // Step 4: Configure options based on the mode
+      // Extract hostname from LLAMACLOUD_BASE_URL for LlamaParseReader
+      // The SDK expects just the hostname (e.g., 'api.cloud.eu.llamaindex.ai')
+      const baseUrlHostname = new URL(env.LLAMACLOUD_BASE_URL).hostname;
+
       let readerOptions: Record<string, any> = {
         apiKey: this.apiKey,
-        resultType: "markdown"
+        resultType: "markdown",
+        baseUrl: baseUrlHostname,
       };
-      
+
       // Add mode-specific options
       if (mode === 'fast') {
         readerOptions.fast_mode = true;
@@ -66,9 +71,9 @@ export class LlamaParseService {
       } else if (mode === 'complexTables') {
         readerOptions.complexTables = true;
       }
-      
+
       console.log(`Creating reader with options:`, readerOptions);
-      
+
       // Step 5: Create the reader with the appropriate options
       const reader = new LlamaParseReader(readerOptions);
       
