@@ -119,6 +119,10 @@ pnpm prisma migrate deploy
 pnpm prisma db seed
 ```
 
+Note: `prisma` expects the env to be in a `.env` file, means for this
+to work you need to copy (or link) `.env.local` to `.env` (or just use
+`.env` in the first place).
+
 ### 5. Supabase Setup
 
 1. Create a new Supabase project at [supabase.com](https://supabase.com)
@@ -212,6 +216,9 @@ The application uses a multi-tenant architecture with the following key models:
 5. **Source Attribution**: Responses include relevant source citations
 
 ## 🚀 Deployment
+
+Please check [DOCKER.md][] to understand how to build and run 
+`auto_rfp` in a docker-container.
 
 ### Environment Variables for Production
 
