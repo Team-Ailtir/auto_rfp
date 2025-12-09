@@ -20,8 +20,30 @@ export const env = {
   NODE_ENV: process.env.NODE_ENV || 'development',
 };
 
+// Helper function to mask sensitive values
+function maskSensitiveValue(key: string, value: string): string {
+  const sensitiveKeys = ['API_KEY', 'ANON_KEY'];
+  const isSensitive = sensitiveKeys.some(pattern => key.includes(pattern));
+
+  if (!value) return '(not set)';
+  if (!isSensitive) return value;
+
+  // Show first 4 and last 4 characters for API keys
+  if (value.length > 12) {
+    return `${value.slice(0, 4)}...${value.slice(-4)}`;
+  }
+  return '***';
+}
+
 // Function to validate required environment variables
 export function validateEnv() {
+  // Log all env vars to the console
+  console.log('\n=== Environment Variables ===');
+  Object.entries(env).forEach(([key, value]) => {
+    console.log(`${key}: ${maskSensitiveValue(key, value as string)}`);
+  });
+  console.log('=============================\n');
+
   const requiredVars = [
     { key: 'NEXT_PUBLIC_SUPABASE_URL', value: env.NEXT_PUBLIC_SUPABASE_URL },
     { key: 'NEXT_PUBLIC_SUPABASE_ANON_KEY', value: env.NEXT_PUBLIC_SUPABASE_ANON_KEY },
