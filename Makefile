@@ -28,8 +28,8 @@ docker-push: ## Push Docker container
 	docker tag $(GIT_REPO):latest $(AWS_REPO):latest
 	docker push $(AWS_REPO):latest
 
-.PHONY: docker-start
-docker-start: ## Run Docker container
+.PHONY: docker-run
+docker-run: ## Run Docker container
 	test -n "$$(docker ps --quiet --filter name=^auto_rfp$$)" || docker run \
 		--detach \
 		--env-file .env.local \
@@ -45,6 +45,6 @@ docker-stop: ## Stop Docker container
 install: ## Install dependencies
 	pnpm install
 
-.PHONY: 
+.PHONY: run-dev
 run-dev: ## Run dev server
 	pnpm dev

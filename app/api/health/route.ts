@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { apiHandler } from "@/lib/middleware/api-handler";
 import { db } from "@/lib/db";
+import { env } from "@/lib/env";
 
 /**
  * Health check endpoint for Docker and monitoring
@@ -15,7 +16,7 @@ export async function GET(request: NextRequest) {
       status: "healthy",
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      environment: process.env.NODE_ENV || "development",
+      environment: env.NODE_ENV,
     };
   });
 }

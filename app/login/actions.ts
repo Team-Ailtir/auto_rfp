@@ -4,27 +4,24 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import { createClient } from '@/lib/utils/supabase/server'
+import { env } from '@/lib/env'
 
 export async function signInWithMagicLink(formData: FormData) {
   const supabase = await createClient()
 
   // Get email from form data
   const email = formData.get('email') as string
-  
+
   // Validate email
   if (!email || !email.includes('@')) {
     // In a real app, you'd want to return an error message
     redirect('/error')
   }
 
-  // Get the origin for creating the full redirect URL
-  // In production, you should set NEXT_PUBLIC_APP_URL in your environment variables
-  const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${origin}/auth/callback`, // Redirect to our auth callback handler
+      emailRedirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/callback`,
     },
   })
 
