@@ -18,6 +18,7 @@ export async function signInWithMagicLink(formData: FormData) {
     redirect('/error')
   }
 
+  console.log(`env.NEXT_PUBLIC_APP_URL: ${env.NEXT_PUBLIC_APP_URL}`);
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
