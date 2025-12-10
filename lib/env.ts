@@ -103,11 +103,4 @@ export function isProduction(): boolean {
  */
 export function isDevelopment(): boolean {
   return env.get('NODE_ENV') === 'development';
-}
-
-/**
- * Get the base URL for the application
- */
-export function getAppUrl(): string {
-  return env.get('NEXT_PUBLIC_APP_URL')!;
 } 

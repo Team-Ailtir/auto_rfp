@@ -19,8 +19,8 @@ export async function signInWithMagicLink(formData: FormData) {
 
   // Get the origin for creating the full redirect URL
   // In production, you should set NEXT_PUBLIC_APP_URL in your environment variables
-  const { getAppUrl } = await import('@/lib/env')
-  const origin = getAppUrl()
+  const { env } = await import('@/lib/env')
+  const origin = env.get('NEXT_PUBLIC_APP_URL')!
   
   const { error } = await supabase.auth.signInWithOtp({
     email,
