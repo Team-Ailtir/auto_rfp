@@ -10,7 +10,7 @@ export async function signInWithMagicLink(formData: FormData) {
 
   // Get email from form data
   const email = formData.get('email') as string
-  
+
   // Validate email
   if (!email || !email.includes('@')) {
     // In a real app, you'd want to return an error message
@@ -19,7 +19,8 @@ export async function signInWithMagicLink(formData: FormData) {
 
   // Get the origin for creating the full redirect URL
   // In production, you should set NEXT_PUBLIC_APP_URL in your environment variables
-  const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const { getAppUrl } = await import('@/lib/env')
+  const origin = getAppUrl()
   
   const { error } = await supabase.auth.signInWithOtp({
     email,

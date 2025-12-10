@@ -3,6 +3,7 @@ import { IAIQuestionExtractor, AIServiceConfig } from '@/lib/interfaces/ai-servi
 import { ExtractedQuestions, ExtractedQuestionsSchema } from '@/lib/validators/extract-questions';
 import { DEFAULT_LANGUAGE_MODEL } from '@/lib/constants';
 import { AIServiceError } from '@/lib/errors/api-errors';
+import { env } from '@/lib/env';
 
 /**
  * OpenAI-powered question extraction service
@@ -13,7 +14,7 @@ export class OpenAIQuestionExtractor implements IAIQuestionExtractor {
 
   constructor(config: Partial<AIServiceConfig> = {}) {
     this.client = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
+      apiKey: env.OPENAI_API_KEY,
     });
 
     this.config = {
@@ -24,7 +25,7 @@ export class OpenAIQuestionExtractor implements IAIQuestionExtractor {
       ...config,
     };
 
-    if (!process.env.OPENAI_API_KEY) {
+    if (!env.OPENAI_API_KEY) {
       throw new AIServiceError('OpenAI API key is not configured');
     }
   }
