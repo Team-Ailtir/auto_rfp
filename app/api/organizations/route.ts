@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { organizationService } from '@/lib/organization-service';
 import { llamaCloudConnectionService } from '@/lib/services/llamacloud-connection-service';
-import { getLlamaCloudApiKey } from '@/lib/env';
+import { env, getLlamaCloudApiKey } from '@/lib/env';
 
 export async function GET() {
 
@@ -82,14 +82,14 @@ async function fetchLlamaCloudProjects(userEmail?: string) {
     const apiKey = getLlamaCloudApiKey(userEmail);
 
     const [projectsResponse, organizationsResponse] = await Promise.all([
-      fetch('https://api.cloud.llamaindex.ai/api/v1/projects', {
+      fetch(`${env.get('LLAMACLOUD_API_URL')!}/projects`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
         },
       }),
-      fetch('https://api.cloud.llamaindex.ai/api/v1/organizations', {
+      fetch(`${env.get('LLAMACLOUD_API_URL')!}/organizations`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${apiKey}`,

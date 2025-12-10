@@ -1,6 +1,6 @@
 import { ILlamaCloudClient, LlamaCloudClientConfig } from '@/lib/interfaces/llamacloud-service';
-import { 
-  LlamaCloudProject, 
+import {
+  LlamaCloudProject,
   LlamaCloudProjectSchema,
   LlamaCloudPipeline,
   LlamaCloudPipelineSchema,
@@ -8,6 +8,7 @@ import {
   LlamaCloudFileSchema
 } from '@/lib/validators/llamacloud';
 import { ExternalServiceError, LlamaCloudConnectionError } from '@/lib/errors/api-errors';
+import { env } from '@/lib/env';
 import { z } from 'zod';
 
 /**
@@ -18,7 +19,7 @@ export class LlamaCloudClient implements ILlamaCloudClient {
 
   constructor(config: Partial<LlamaCloudClientConfig> = {}) {
     this.config = {
-      baseUrl: 'https://api.cloud.llamaindex.ai/api/v1',
+      baseUrl: env.get('LLAMACLOUD_API_URL')!,
       timeout: 30000,
       retryAttempts: 3,
       ...config,
