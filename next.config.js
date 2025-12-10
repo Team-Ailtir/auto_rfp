@@ -12,6 +12,8 @@ const nextConfig = {
   },
   // Other Next.js config options
   reactStrictMode: true,
+  // Enable standalone output for Docker deployment
+  output: 'standalone',
 }
 
 module.exports = nextConfig; 
