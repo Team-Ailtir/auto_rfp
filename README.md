@@ -241,6 +241,20 @@ The application can be deployed to any platform that supports Node.js:
 - AWS Amplify
 - Google Cloud Run
 
+### Build and Run with Docker
+
+AutoRFP includes Docker support for containerized deployment.
+
+```bash
+# Build the Docker image
+pnpm docker-build
+
+# Run the container
+pnpm docker-run
+```
+
+**Note:** The Docker container uses Next.js standalone output mode for optimized production deployment. Make sure your `.env.local` includes a database connection string that's accessible from within the Docker container.
+
 ## 🔌 API Endpoints
 
 ### Core APIs
@@ -350,3 +364,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 Built with ❤️ using Next.js, LlamaIndex, and OpenAI
+
+[Docker]: https://docs.docker.com/get-docker/
