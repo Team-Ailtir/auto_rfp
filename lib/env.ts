@@ -9,7 +9,6 @@
  * - Optional (without default): Can be set (use with test)
  */
 
-// Database configuration
 export const env = new Map<string, string | undefined>([
   // Database
   ['DATABASE_URL', process.env.DATABASE_URL || 'mandatory-env-not-set'],
@@ -61,7 +60,7 @@ function logEnv() {
  */
 export function validateEnv(): boolean {
   logEnv();
-  
+
   const missingVars: string[] = [];
 
   for (const [key, value] of env.entries()) {
