@@ -81,7 +81,10 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 OPENAI_API_KEY="your-openai-api-key"
 
 # LlamaCloud
+# Note: Uncomment this, if you run against LlamaCloud (EU)
+# LLAMACLOUD_API_URL="https://api.cloud.eu.llamaindex.ai/api/v1"
 LLAMACLOUD_API_KEY="your-llamacloud-api-key"
+
 # Optional: Internal API key and domain for internal users
 # LLAMACLOUD_API_KEY_INTERNAL="your-internal-llamacloud-api-key"
 # INTERNAL_EMAIL_DOMAIN="@yourdomain.com"  # Defaults to @runllama.ai
