@@ -134,7 +134,7 @@ export class LlamaCloudDocumentsService implements ILlamaCloudDocumentsService {
 
       // Get all pipelines for the project
       const pipelines = await llamaCloudClient.fetchPipelinesForProject(
-        env.LLAMACLOUD_API_KEY,
+        env.get('LLAMACLOUD_API_KEY')!,
         organization.llamaCloudProjectId!
       );
 
@@ -143,7 +143,7 @@ export class LlamaCloudDocumentsService implements ILlamaCloudDocumentsService {
       for (const pipeline of pipelines) {
         try {
           const documents = await llamaCloudClient.fetchFilesForPipeline(
-            env.LLAMACLOUD_API_KEY,
+            env.get('LLAMACLOUD_API_KEY')!,
             pipeline.id
           );
           

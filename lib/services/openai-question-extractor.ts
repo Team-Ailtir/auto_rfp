@@ -14,7 +14,7 @@ export class OpenAIQuestionExtractor implements IAIQuestionExtractor {
 
   constructor(config: Partial<AIServiceConfig> = {}) {
     this.client = new OpenAI({
-      apiKey: env.OPENAI_API_KEY,
+      apiKey: env.get('OPENAI_API_KEY')!,
     });
 
     this.config = {
@@ -24,10 +24,6 @@ export class OpenAIQuestionExtractor implements IAIQuestionExtractor {
       timeout: 60000,
       ...config,
     };
-
-    if (!env.OPENAI_API_KEY) {
-      throw new AIServiceError('OpenAI API key is not configured');
-    }
   }
 
   /**

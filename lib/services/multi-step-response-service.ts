@@ -40,7 +40,7 @@ export class MultiStepResponseService implements IMultiStepResponseService {
 
     // Initialize OpenAI for AI-powered reasoning
     this.openai = new OpenAI({
-      apiKey: env.OPENAI_API_KEY,
+      apiKey: env.get('OPENAI_API_KEY')!,
     });
   }
 
@@ -66,7 +66,7 @@ export class MultiStepResponseService implements IMultiStepResponseService {
         console.log(`DEBUG Multi-step: selected index names:`, selectedIndexNames);
         
         this.llamaIndexService = new LlamaIndexService({
-          apiKey: env.LLAMACLOUD_API_KEY,
+          apiKey: env.get('LLAMACLOUD_API_KEY')!,
           projectName: projectConfig.organization.llamaCloudProjectName || 'Default',
           indexNames: selectedIndexNames.length > 0 ? selectedIndexNames : undefined,
         });

@@ -109,5 +109,5 @@ export function isDevelopment(): boolean {
  * Get the base URL for the application
  */
 export function getAppUrl(): string {
-  return env.get('NEXT_PUBLIC_APP_URL') || 'http://localhost:3000';
+  return env.get('NEXT_PUBLIC_APP_URL')!;
 } 

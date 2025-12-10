@@ -20,8 +20,8 @@ export class LlamaParseService {
     if (!validateEnv()) {
       throw new Error('Required environment variables are missing');
     }
-    
-    this.apiKey = env.LLAMACLOUD_API_KEY;
+
+    this.apiKey = env.get('LLAMACLOUD_API_KEY')!;
   }
   
   /**

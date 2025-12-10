@@ -35,7 +35,7 @@ export class LlamaIndexService implements ILlamaIndexService {
       throw new Error('Required environment variables are missing');
     }
       this.config = {
-        apiKey: env.LLAMACLOUD_API_KEY,
+        apiKey: env.get('LLAMACLOUD_API_KEY')!,
         projectName: 'Default',
       };
   }
