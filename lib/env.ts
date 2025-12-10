@@ -60,6 +60,8 @@ function logEnv() {
  * Returns true if all required vars are set, false otherwise
  */
 export function validateEnv(): boolean {
+  logEnv();
+  
   const missingVars: string[] = [];
 
   for (const [key, value] of env.entries()) {

@@ -1,4 +1,4 @@
-import { env, validateEnv } from "./env";
+import { env } from "./env";
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -15,12 +15,8 @@ export interface ParseOptions {
  */
 export class LlamaParseService {
   private apiKey: string;
-  
-  constructor() {
-    if (!validateEnv()) {
-      throw new Error('Required environment variables are missing');
-    }
 
+  constructor() {
     this.apiKey = env.get('LLAMACLOUD_API_KEY')!;
   }
   

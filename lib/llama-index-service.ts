@@ -1,4 +1,4 @@
-import { env, validateEnv } from "./env";
+import { env } from "./env";
 import { LlamaCloudIndex, ContextChatEngine } from "llamaindex";
 import { 
   ILlamaIndexService,
@@ -31,14 +31,11 @@ export class LlamaIndexService implements ILlamaIndexService {
       };
     } else {
       // Fallback to environment variables (for default responses)
-    if (!validateEnv()) {
-      throw new Error('Required environment variables are missing');
-    }
       this.config = {
         apiKey: env.get('LLAMACLOUD_API_KEY')!,
         projectName: 'Default',
       };
-  }
+    }
   
     this.initializeIndexes();
   }
