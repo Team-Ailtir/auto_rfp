@@ -104,10 +104,10 @@ export function OrganizationProjectSwitcher() {
       const data = await response.json();
       if (data.success) {
         // Show success message with auto-connection status
-        if (data.llamaCloudAutoConnected) {
+        if (data.indexProviderAutoConnected) {
           toast({
             title: "Success",
-            description: "Organization created successfully and automatically connected to LlamaCloud",
+            description: "Organization created successfully and automatically connected to document index provider",
           });
         } else {
           toast({
