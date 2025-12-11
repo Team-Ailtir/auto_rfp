@@ -73,20 +73,18 @@ export class ProviderFactory {
    */
   private createProvider(type: ProviderType): IDocumentIndexProvider {
     switch (type) {
-      case 'llamacloud':
+      case 'llamacloud': {
         // Lazy import to avoid circular dependencies
-        // Will be implemented in Phase 2
-        throw new Error(
-          'LlamaCloud provider not yet implemented. ' +
-          'This will be available in Phase 2 of the refactor.'
-        );
+        const { LlamaCloudProvider } = require('./llamacloud-provider');
+        return new LlamaCloudProvider();
+      }
 
       case 'bedrock':
         // Lazy import to avoid circular dependencies
-        // Will be implemented in Phase 2
+        // Will be implemented in Task 5
         throw new Error(
           'Bedrock provider not yet implemented. ' +
-          'This will be available in Phase 2 of the refactor.'
+          'This will be available in Task 5 of Phase 2.'
         );
 
       default:
