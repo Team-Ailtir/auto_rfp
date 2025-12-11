@@ -79,13 +79,11 @@ export class ProviderFactory {
         return new LlamaCloudProvider();
       }
 
-      case 'bedrock':
+      case 'bedrock': {
         // Lazy import to avoid circular dependencies
-        // Will be implemented in Task 5
-        throw new Error(
-          'Bedrock provider not yet implemented. ' +
-          'This will be available in Task 5 of Phase 2.'
-        );
+        const { BedrockProvider } = require('./bedrock-provider');
+        return new BedrockProvider();
+      }
 
       default:
         // TypeScript exhaustiveness check
