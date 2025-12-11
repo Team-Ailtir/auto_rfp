@@ -66,10 +66,10 @@ export function CreateOrganizationDialog({
         const organization = result.data;
         
         // Show success message with auto-connection status
-        if (result.llamaCloudAutoConnected) {
+        if (result.indexProviderAutoConnected) {
           toast({
             title: 'Success',
-            description: `${organization.name} has been created and automatically connected to LlamaCloud`,
+            description: `${organization.name} has been created and automatically connected to document index provider`,
           });
         } else {
           toast({

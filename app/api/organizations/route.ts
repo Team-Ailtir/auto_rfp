@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { organizationService } from '@/lib/organization-service';
-import { llamaCloudConnectionService } from '@/lib/services/llamacloud-connection-service';
-import { env, validateEnv, getLlamaCloudApiKey } from '@/lib/env';
+import { indexConnectionService } from '@/lib/services/index-connection-service';
+import { getProviderCredentials } from '@/lib/env';
+import { providerFactory } from '@/lib/providers/provider-factory';
 
 export async function GET() {
 
@@ -75,56 +76,18 @@ export async function GET() {
   }
 }
 
-// Helper function to fetch available LlamaCloud projects
-async function fetchLlamaCloudProjects(userEmail?: string) {
+// Helper function to fetch available projects from current provider
+async function fetchProviderProjects(userEmail?: string) {
   try {
-    if (!validateEnv()) {
-      return [];
-    }
+    const provider = providerFactory.getProvider();
+    const credentials = getProviderCredentials(userEmail);
 
-    // Get the appropriate API key based on user's email
-    const apiKey = getLlamaCloudApiKey(userEmail);
+    // Fetch projects from current provider
+    const projects = await provider.verifyCredentialsAndFetchProjects(credentials);
 
-    const [projectsResponse, organizationsResponse] = await Promise.all([
-      fetch('https://api.cloud.llamaindex.ai/api/v1/projects', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      }),
-      fetch('https://api.cloud.llamaindex.ai/api/v1/organizations', {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-      })
-    ]);
-
-    if (!projectsResponse.ok) {
-      console.warn('Failed to fetch LlamaCloud projects:', projectsResponse.status);
-      return [];
-    }
-
-    const projects = await projectsResponse.json();
-    const organizations = organizationsResponse.ok ? await organizationsResponse.json() : [];
-    
-    // Create a map of organization_id -> organization_name for quick lookup
-    const orgMap = new Map();
-    if (Array.isArray(organizations)) {
-      organizations.forEach((org: any) => {
-        orgMap.set(org.id, org.name);
-      });
-    }
-    
-    // Enhance projects with organization names
-    return (projects || []).map((project: any) => ({
-      ...project,
-      organization_name: orgMap.get(project.organization_id) || 'Unknown Organization'
-    }));
+    return projects;
   } catch (error) {
-    console.warn('Error fetching LlamaCloud projects for auto-connection:', error);
+    console.warn('Error fetching provider projects for auto-connection:', error);
     return [];
   }
 }
@@ -164,27 +127,28 @@ export async function POST(request: Request) {
       currentUser.id
     );
 
-    // Attempt automatic LlamaCloud connection if there's exactly one project
-    let llamaCloudConnectionResult = null;
+    // Attempt automatic provider connection if there's exactly one project
+    let indexProviderConnectionResult = null;
     try {
-      const availableProjects = await fetchLlamaCloudProjects(currentUser.email);
-      
+      const availableProjects = await fetchProviderProjects(currentUser.email);
+
       if (availableProjects.length === 1) {
         const project = availableProjects[0];
-        console.log(`Auto-connecting organization ${organization.id} to single LlamaCloud project: ${project.name}`);
-        
-        llamaCloudConnectionResult = await llamaCloudConnectionService.connectToLlamaCloud({
+        console.log(`Auto-connecting organization ${organization.id} to single project: ${project.name}`);
+
+        indexProviderConnectionResult = await indexConnectionService.connect({
           organizationId: organization.id,
           projectId: project.id,
           projectName: project.name,
-          llamaCloudOrgName: project.organization_name,
+          organizationName: project.organizationName,
+          region: project.region,
         }, currentUser.id);
       } else {
-        console.log(`Skipping auto-connection: ${availableProjects.length} LlamaCloud projects available`);
+        console.log(`Skipping auto-connection: ${availableProjects.length} projects available`);
       }
     } catch (error) {
-      // Don't fail the organization creation if LlamaCloud connection fails
-      console.warn('Auto-connection to LlamaCloud failed:', error);
+      // Don't fail the organization creation if provider connection fails
+      console.warn('Auto-connection to document index provider failed:', error);
     }
 
     // Fetch the complete organization data with relationships for response
@@ -215,7 +179,7 @@ export async function POST(request: Request) {
     return NextResponse.json({
       success: true,
       data: completeOrganization,
-      llamaCloudAutoConnected: !!llamaCloudConnectionResult
+      indexProviderAutoConnected: !!indexProviderConnectionResult
     });
   } catch (error) {
     console.error('Failed to create organization:', error);

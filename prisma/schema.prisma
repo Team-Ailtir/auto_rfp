@@ -35,11 +35,13 @@ model Organization {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  // LlamaCloud Project integration (project-specific connection)
-  llamaCloudProjectId    String?
-  llamaCloudProjectName  String?
-  llamaCloudOrgName      String?
-  llamaCloudConnectedAt  DateTime?
+  // Document Index Provider integration (provider-agnostic)
+  indexProvider         String?   // 'llamacloud' | 'bedrock'
+  indexProjectId        String?   // Provider-specific project/KB ID
+  indexProjectName      String?   // Human-readable name
+  indexOrganizationName String?   // Provider org name (if applicable)
+  indexConnectedAt      DateTime? // Connection timestamp
+  indexRegion           String?   // AWS region (for Bedrock), null for LlamaCloud
 
   // Relationships
   projects          Project[]
@@ -94,9 +96,11 @@ model ProjectIndex {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // LlamaCloud index information (mapped from pipeline API)
-  indexId   String // LlamaCloud pipeline ID (stored as indexId for clarity)
-  indexName String // LlamaCloud pipeline name (stored as indexName for clarity)
+  // Provider-agnostic index information
+  // For LlamaCloud: Pipeline ID and name
+  // For Bedrock: Data Source ID and name
+  indexId   String // Pipeline ID (LlamaCloud) or Data Source ID (Bedrock)
+  indexName String // Human-readable name (provider-agnostic)
 
   // Foreign key
   projectId String

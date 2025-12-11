@@ -10,34 +10,37 @@ import { useToast } from '@/components/ui/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Cloud, Loader2, AlertCircle, CheckCircle2, Unplug } from 'lucide-react';
 
-interface LlamaCloudProject {
+interface IndexProject {
   id: string;
   name: string;
   description?: string;
-  organization_id: string;
-  organization_name: string;
-  created_at: string;
-  updated_at: string;
+  organization_id?: string;
+  organizationName?: string;
+  region?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
-interface LlamaCloudConnectionProps {
+interface IndexProviderConnectionProps {
   orgId: string;
   organization: any;
   onConnectionUpdate: (organization: any) => void;
 }
 
-export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }: LlamaCloudConnectionProps) {
+export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }: IndexProviderConnectionProps) {
   const [selectedProjectId, setSelectedProjectId] = useState('');
-  const [availableProjects, setAvailableProjects] = useState<LlamaCloudProject[]>([]);
+  const [availableProjects, setAvailableProjects] = useState<IndexProject[]>([]);
   const [isConnecting, setIsConnecting] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [isFetchingProjects, setIsFetchingProjects] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const isConnected = organization?.llamaCloudConnectedAt;
-  const connectedProjectName = organization?.llamaCloudProjectName;
-  const connectedProjectId = organization?.llamaCloudProjectId;
+  const isConnected = organization?.indexConnectedAt;
+  const connectedProjectName = organization?.indexProjectName;
+  const connectedProjectId = organization?.indexProjectId;
+  const providerType = organization?.indexProvider || 'LlamaCloud';
+  const providerDisplayName = providerType === 'bedrock' ? 'Amazon Bedrock Knowledge Base' : 'LlamaCloud Project';
 
   // Fetch available projects using environment API key
   const fetchProjects = async () => {
@@ -46,7 +49,7 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
 
     try {
       // Fetch projects through our API route (which uses environment variables on server side)
-      const response = await fetch('/api/llamacloud/projects', {
+      const response = await fetch('/api/index-provider/projects', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -55,9 +58,9 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error('LlamaCloud API key is not configured or invalid. Please check your environment variables.');
+          throw new Error('Document index provider API key is not configured or invalid. Please check your environment variables.');
         }
-        throw new Error('Failed to fetch projects from LlamaCloud.');
+        throw new Error('Failed to fetch projects from document index provider.');
       }
 
       const data = await response.json();
@@ -78,7 +81,7 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
     }
   }, [isConnected]);
 
-  // Connect to LlamaCloud project
+  // Connect to document index provider project
   const handleConnect = async () => {
     if (!selectedProjectId) {
       toast({
@@ -94,8 +97,8 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
 
     try {
       const selectedProject = availableProjects.find(p => p.id === selectedProjectId);
-      
-      const response = await fetch('/api/llamacloud/connect', {
+
+      const response = await fetch('/api/index-provider/connect', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -104,13 +107,14 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
           organizationId: orgId,
           projectId: selectedProjectId,
           projectName: selectedProject?.name || 'Unknown Project',
-          llamaCloudOrgName: selectedProject?.organization_name || 'Unknown Organization',
+          organizationName: selectedProject?.organizationName || selectedProject?.organization_name || 'Unknown Organization',
+          region: selectedProject?.region,
         }),
       });
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to connect to LlamaCloud');
+        throw new Error(errorData.error || 'Failed to connect to document index provider');
       }
 
       const updatedOrg = await response.json();
@@ -118,14 +122,14 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
 
       toast({
         title: 'Success',
-        description: `Connected to LlamaCloud project "${selectedProject?.name}"`,
+        description: `Connected to ${providerDisplayName} "${selectedProject?.name}"`,
       });
 
       // Clear form
       setSelectedProjectId('');
       setAvailableProjects([]);
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to connect to LlamaCloud';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to connect to document index provider';
       setError(errorMessage);
       toast({
         title: 'Error',
@@ -137,13 +141,13 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
     }
   };
 
-  // Disconnect from LlamaCloud
+  // Disconnect from document index provider
   const handleDisconnect = async () => {
     setIsDisconnecting(true);
     setError(null);
 
     try {
-      const response = await fetch('/api/llamacloud/disconnect', {
+      const response = await fetch('/api/index-provider/disconnect', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -155,7 +159,7 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to disconnect from LlamaCloud');
+        throw new Error(errorData.error || 'Failed to disconnect from document index provider');
       }
 
       const updatedOrg = await response.json();
@@ -163,13 +167,13 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
 
       toast({
         title: 'Success',
-        description: 'Disconnected from LlamaCloud',
+        description: 'Disconnected from document index provider',
       });
 
       // Refresh projects for potential reconnection
       fetchProjects();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to disconnect from LlamaCloud';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to disconnect from document index provider';
       setError(errorMessage);
       toast({
         title: 'Error',
@@ -186,11 +190,11 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Cloud className="h-5 w-5" />
-          LlamaCloud Integration
+          Document Index Integration
         </CardTitle>
         <CardDescription>
-          Connect your organization to a LlamaCloud project for document indexing and search.
-          The API key is configured via environment variables.
+          Connect your organization to a document index provider for document indexing and search.
+          The API credentials are configured via environment variables.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -206,12 +210,13 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
           <div className="space-y-4">
             <Alert>
               <CheckCircle2 className="h-4 w-4" />
-              <AlertTitle>Connected to LlamaCloud</AlertTitle>
+              <AlertTitle>Connected to {providerDisplayName}</AlertTitle>
               <AlertDescription>
-                {organization?.llamaCloudOrgName && organization?.llamaCloudProjectName ? 
-                  `Connected to ${organization.llamaCloudOrgName} - ${organization.llamaCloudProjectName}` :
-                  `Your organization is connected to the LlamaCloud project "${connectedProjectName}"`
+                {organization?.indexOrganizationName && organization?.indexProjectName ?
+                  `Connected to ${organization.indexOrganizationName} - ${organization.indexProjectName}` :
+                  `Your organization is connected to the ${providerDisplayName.toLowerCase()} "${connectedProjectName}"`
                 }
+                {organization?.indexRegion && ` (${organization.indexRegion})`}
               </AlertDescription>
             </Alert>
 
@@ -241,8 +246,8 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>Environment Configuration</AlertTitle>
               <AlertDescription>
-                LlamaCloud API key is configured via environment variables. 
-                Make sure LLAMACLOUD_API_KEY is set in your environment.
+                Document index provider credentials are configured via environment variables.
+                Make sure your provider API credentials are properly set.
               </AlertDescription>
             </Alert>
 
@@ -255,7 +260,7 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
 
             {availableProjects.length > 0 && (
               <div className="space-y-2">
-                <Label htmlFor="project-select">Select LlamaCloud Project</Label>
+                <Label htmlFor="project-select">Select Project</Label>
                 <Select value={selectedProjectId} onValueChange={setSelectedProjectId}>
                   <SelectTrigger>
                     <SelectValue placeholder="Choose a project to connect to" />
@@ -265,10 +270,13 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
                       <SelectItem key={project.id} value={project.id}>
                         <div className="flex flex-col">
                           <span className="font-medium">
-                            {project.organization_name} - {project.name}
+                            {project.organizationName || project.organization_name || ''}{project.organizationName || project.organization_name ? ' - ' : ''}{project.name}
                           </span>
                           {project.description && (
                             <span className="text-xs text-muted-foreground">{project.description}</span>
+                          )}
+                          {project.region && (
+                            <span className="text-xs text-muted-foreground">Region: {project.region}</span>
                           )}
                         </div>
                       </SelectItem>
@@ -276,7 +284,7 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">
-                  This will connect your organization to the selected LlamaCloud project
+                  This will connect your organization to the selected project
                 </p>
               </div>
             )}
@@ -286,12 +294,12 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>No Projects Found</AlertTitle>
                 <AlertDescription>
-                  No projects were found. Make sure you have created a project in LlamaCloud and the API key is properly configured.
+                  No projects were found. Make sure you have created a project in your document index provider and the credentials are properly configured.
                 </AlertDescription>
               </Alert>
             )}
 
-            <Button 
+            <Button
               onClick={handleConnect}
               disabled={!selectedProjectId || isConnecting || isFetchingProjects}
               className="w-full"
@@ -304,7 +312,7 @@ export function LlamaCloudConnection({ orgId, organization, onConnectionUpdate }
               ) : (
                 <>
                   <Cloud className="h-4 w-4 mr-2" />
-                  Connect to LlamaCloud
+                  Connect Document Index
                 </>
               )}
             </Button>

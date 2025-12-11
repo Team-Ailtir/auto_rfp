@@ -63,9 +63,12 @@ export const organizationService = {
           createdAt: true,
           updatedAt: true,
           // Include LlamaCloud connection fields
-          llamaCloudProjectId: true,
-          llamaCloudProjectName: true,
-          llamaCloudConnectedAt: true,
+          indexProvider: true,
+          indexProjectId: true,
+          indexProjectName: true,
+          indexOrganizationName: true,
+          indexConnectedAt: true,
+          indexRegion: true,
         }
       });
     }
@@ -101,9 +104,12 @@ export const organizationService = {
           createdAt: true,
           updatedAt: true,
           // Include LlamaCloud connection fields
-          llamaCloudProjectId: true,
-          llamaCloudProjectName: true,
-          llamaCloudConnectedAt: true,
+          indexProvider: true,
+          indexProjectId: true,
+          indexProjectName: true,
+          indexOrganizationName: true,
+          indexConnectedAt: true,
+          indexRegion: true,
         }
       });
     }

@@ -40,7 +40,7 @@ export function ProjectIndexSelector({ projectId }: ProjectIndexSelectorProps) {
   const [organizationConnected, setOrganizationConnected] = useState(false);
   const [projectName, setProjectName] = useState('');
   const [organizationName, setOrganizationName] = useState('');
-  const [llamaCloudProjectName, setLlamaCloudProjectName] = useState('');
+  const [indexProjectName, setIndexProjectName] = useState('');
   const [isEditing, setIsEditing] = useState(false);
   const { toast } = useToast();
 
@@ -64,7 +64,7 @@ export function ProjectIndexSelector({ projectId }: ProjectIndexSelectorProps) {
       setOrganizationConnected(data.organizationConnected);
       setProjectName(data.project?.name || '');
       setOrganizationName(data.organizationName || '');
-      setLlamaCloudProjectName(data.llamaCloudProjectName || '');
+      setIndexProjectName(data.indexProjectName || '');
       
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch project indexes';
@@ -242,7 +242,7 @@ export function ProjectIndexSelector({ projectId }: ProjectIndexSelectorProps) {
           Project Indexes
         </CardTitle>
         <CardDescription>
-          Select which indexes from {organizationName}'s LlamaCloud project "{llamaCloudProjectName}" this project can access
+          Select which indexes from {organizationName}'s project "{indexProjectName}" this project can access
           {isEditing && (
             <span className="inline-flex items-center gap-1 ml-2 text-blue-600 font-medium">
               <Edit3 className="h-3 w-3" />

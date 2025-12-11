@@ -27,9 +27,9 @@ export async function GET(
           select: {
             id: true,
             name: true,
-            llamaCloudProjectId: true,
-            llamaCloudProjectName: true,
-            llamaCloudConnectedAt: true,
+            indexProjectId: true,
+            indexProjectName: true,
+            indexConnectedAt: true,
           },
         },
         projectIndexes: true,
@@ -57,7 +57,7 @@ export async function GET(
     }
 
     // If organization is not connected to LlamaCloud, return empty data
-    if (!project.organization.llamaCloudProjectId || !project.organization.llamaCloudConnectedAt) {
+    if (!project.organization.indexProjectId || !project.organization.indexConnectedAt) {
       return NextResponse.json({
         project: {
           id: project.id,
@@ -95,7 +95,7 @@ export async function GET(
       
       // Filter pipelines to only include those from the connected LlamaCloud project
       const filteredPipelines = pipelines.filter((pipeline: any) => 
-        pipeline.project_id === project.organization.llamaCloudProjectId
+        pipeline.project_id === project.organization.indexProjectId
       );
       
       
@@ -141,7 +141,7 @@ export async function GET(
         availableIndexes,
         organizationConnected: true,
         organizationName: project.organization.name,
-        llamaCloudProjectName: project.organization.llamaCloudProjectName,
+        indexProjectName: project.organization.indexProjectName,
       });
 
     } catch (error) {
@@ -192,8 +192,8 @@ export async function POST(
         organization: {
           select: {
             id: true,
-            llamaCloudProjectId: true,
-            llamaCloudConnectedAt: true,
+            indexProjectId: true,
+            indexConnectedAt: true,
           },
         },
       },
@@ -220,7 +220,7 @@ export async function POST(
     }
 
     // Check if organization is connected to LlamaCloud
-    if (!project.organization.llamaCloudProjectId || !project.organization.llamaCloudConnectedAt) {
+    if (!project.organization.indexProjectId || !project.organization.indexConnectedAt) {
       return NextResponse.json(
         { error: 'Organization is not connected to LlamaCloud' },
         { status: 400 }
@@ -266,7 +266,7 @@ export async function POST(
       
       // Filter pipelines to only include those from the connected LlamaCloud project
       const filteredPipelines = pipelines.filter((pipeline: any) => 
-        pipeline.project_id === project.organization.llamaCloudProjectId
+        pipeline.project_id === project.organization.indexProjectId
       );
       
       const pipelineMap = new Map<string, string>(filteredPipelines.map((p: any) => [p.id, p.name]));
