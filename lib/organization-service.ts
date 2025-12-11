@@ -69,7 +69,6 @@ export const organizationService = {
           indexOrganizationName: true,
           indexConnectedAt: true,
           indexRegion: true,
-          llamaCloudConnectedAt: true,
         }
       });
     }
@@ -111,7 +110,6 @@ export const organizationService = {
           indexOrganizationName: true,
           indexConnectedAt: true,
           indexRegion: true,
-          llamaCloudConnectedAt: true,
         }
       });
     }
