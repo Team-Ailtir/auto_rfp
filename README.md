@@ -17,7 +17,8 @@ AutoRFP is an intelligent platform that automates RFP (Request for Proposal) res
 - **Auto-Connect LlamaCloud**: Automatically connects to LlamaCloud when single project is available
 
 ### 🔍 Advanced Search & Indexing
-- **LlamaCloud Integration**: Connect to LlamaCloud projects for document indexing
+- **Multi-Provider Support**: Connect to LlamaCloud or Amazon Bedrock Knowledge Bases
+- **Flexible Provider Selection**: Choose your document indexing provider via environment variable
 - **Multiple Index Support**: Work with multiple document indexes per project
 - **Source Attribution**: Track and cite sources in generated responses
 - **Real-time Search**: Search through your document knowledge base
@@ -34,7 +35,8 @@ AutoRFP is an intelligent platform that automates RFP (Request for Proposal) res
 - **Styling**: Tailwind CSS, Radix UI Components
 - **Authentication**: Supabase Auth (Magic Link)
 - **Database**: PostgreSQL with Prisma ORM
-- **AI & ML**: OpenAI GPT-4o, LlamaIndex, LlamaCloud
+- **AI & ML**: OpenAI GPT-4o, LlamaIndex
+- **Document Indexing**: LlamaCloud or Amazon Bedrock Knowledge Bases
 - **Deployment**: Vercel (recommended)
 - **Package Manager**: pnpm
 
@@ -47,7 +49,9 @@ Before setting up AutoRFP, ensure you have:
 - **PostgreSQL** database (local or cloud)
 - **Supabase** account and project
 - **OpenAI** API account with credits
-- **LlamaCloud** account (optional but recommended)
+- **Document Index Provider** (choose one):
+  - **LlamaCloud** account (recommended for quick setup)
+  - **Amazon Bedrock** with Knowledge Bases (for AWS-native deployments)
 
 ## 🚀 Getting Started
 
@@ -80,11 +84,19 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY="your-supabase-anon-key"
 # OpenAI API
 OPENAI_API_KEY="your-openai-api-key"
 
-# LlamaCloud
+# Document Index Provider Selection
+LLAMA_SDK_PROVIDER="llamacloud"  # Options: "llamacloud" or "bedrock"
+
+# LlamaCloud (if using llamacloud provider)
 LLAMACLOUD_API_KEY="your-llamacloud-api-key"
 # Optional: Internal API key and domain for internal users
 # LLAMACLOUD_API_KEY_INTERNAL="your-internal-llamacloud-api-key"
 # INTERNAL_EMAIL_DOMAIN="@yourdomain.com"  # Defaults to @runllama.ai
+
+# Amazon Bedrock (if using bedrock provider)
+# AWS_ACCESS_KEY_ID="your-aws-access-key"
+# AWS_SECRET_ACCESS_KEY="your-aws-secret-key"
+# AWS_REGION="us-east-1"  # Your AWS region
 
 # App Configuration
 NEXT_PUBLIC_APP_URL="http://localhost:3000"
@@ -132,12 +144,45 @@ pnpm prisma db seed
 3. Add credits to your account
 4. Copy the API key to `OPENAI_API_KEY`
 
-### 7. LlamaCloud Setup (Optional)
+### 7. Document Index Provider Setup
+
+AutoRFP supports two document indexing providers. Choose one based on your needs:
+
+#### Option A: LlamaCloud (Recommended for Quick Setup)
 
 1. Create an account at [cloud.llamaindex.ai](https://cloud.llamaindex.ai)
 2. Create a new project
 3. Generate an API key
-4. Copy the API key to `LLAMACLOUD_API_KEY`
+4. Configure your environment:
+   ```bash
+   LLAMA_SDK_PROVIDER="llamacloud"
+   LLAMACLOUD_API_KEY="your-llamacloud-api-key"
+   ```
+
+#### Option B: Amazon Bedrock Knowledge Bases
+
+1. Set up an AWS account with Bedrock access
+2. Create a Knowledge Base in Amazon Bedrock:
+   - Go to Amazon Bedrock console
+   - Navigate to Knowledge Bases
+   - Create a new Knowledge Base with your documents
+   - Note the Knowledge Base ID and region
+3. Create IAM credentials with Bedrock permissions
+4. Configure your environment:
+   ```bash
+   LLAMA_SDK_PROVIDER="bedrock"
+   AWS_ACCESS_KEY_ID="your-access-key-id"
+   AWS_SECRET_ACCESS_KEY="your-secret-access-key"
+   AWS_REGION="us-east-1"  # Your AWS region
+   ```
+
+#### Switching Providers
+
+You can switch between providers by updating the `LLAMA_SDK_PROVIDER` environment variable:
+- Set to `"llamacloud"` to use LlamaCloud
+- Set to `"bedrock"` to use Amazon Bedrock
+
+Organizations must disconnect from their current provider before connecting to a different one.
 
 ### 8. Run the Development Server
 
