@@ -1,18 +1,9 @@
 import { NextRequest } from 'next/server';
 import { apiHandler } from '@/lib/middleware/api-handler';
-import { z } from 'zod';
+import { IndexProviderConnectRequestSchema } from '@/lib/validators/index-provider';
 import { indexConnectionService } from '@/lib/services/index-connection-service';
 import { organizationAuth } from '@/lib/services/organization-auth';
 import { getLlamaSdkProvider } from '@/lib/env';
-
-// Provider-agnostic connect request schema
-const IndexProviderConnectRequestSchema = z.object({
-  organizationId: z.string().min(1, 'Organization ID is required'),
-  projectId: z.string().min(1, 'Project ID is required'),
-  projectName: z.string().min(1, 'Project name is required'),
-  organizationName: z.string().optional(),
-  region: z.string().optional(), // For AWS Bedrock
-});
 
 export async function POST(request: NextRequest) {
   return apiHandler(async () => {

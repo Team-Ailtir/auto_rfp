@@ -1,13 +1,8 @@
 import { NextRequest } from 'next/server';
 import { apiHandler } from '@/lib/middleware/api-handler';
-import { z } from 'zod';
+import { IndexProviderDocumentsRequestSchema } from '@/lib/validators/index-provider';
 import { indexDocumentsService } from '@/lib/services/index-documents-service';
 import { organizationAuth } from '@/lib/services/organization-auth';
-
-// Provider-agnostic documents request schema
-const IndexProviderDocumentsRequestSchema = z.object({
-  organizationId: z.string().min(1, 'Organization ID is required'),
-});
 
 export async function GET(request: NextRequest) {
   return apiHandler(async () => {
