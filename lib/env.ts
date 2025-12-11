@@ -16,20 +16,39 @@ export const env = {
   AWS_REGION: process.env.AWS_REGION || 'us-east-1',
 };
 
-// Function to validate required environment variables
-export function validateEnv() {
-  const requiredVars = [
-    { key: 'LLAMACLOUD_API_KEY', value: env.LLAMACLOUD_API_KEY }
-  ];
+// Function to validate required environment variables based on provider
+export function validateEnv(): boolean {
+  const provider = env.LLAMA_SDK_PROVIDER;
 
-  const missingVars = requiredVars.filter(v => !v.value);
-
-  if (missingVars.length > 0) {
-    console.error(`
-      Missing required environment variables:
-      ${missingVars.map(v => `- ${v.key}`).join('\n      ')}
+  // Validate based on provider type
+  if (provider === 'llamacloud') {
+    if (!env.LLAMACLOUD_API_KEY) {
+      console.error(`
+      Missing required environment variables for LlamaCloud:
+      - LLAMACLOUD_API_KEY
 
       Please set these in your .env.local file
+    `);
+      return false;
+    }
+  } else if (provider === 'bedrock') {
+    const missingVars = [];
+    if (!env.AWS_ACCESS_KEY_ID) missingVars.push('AWS_ACCESS_KEY_ID');
+    if (!env.AWS_SECRET_ACCESS_KEY) missingVars.push('AWS_SECRET_ACCESS_KEY');
+
+    if (missingVars.length > 0) {
+      console.error(`
+      Missing required environment variables for Bedrock:
+      ${missingVars.map(v => `- ${v}`).join('\n      ')}
+
+      Please set these in your .env.local file
+    `);
+      return false;
+    }
+  } else {
+    console.error(`
+      Invalid LLAMA_SDK_PROVIDER: "${provider}"
+      Must be "llamacloud" or "bedrock"
     `);
     return false;
   }

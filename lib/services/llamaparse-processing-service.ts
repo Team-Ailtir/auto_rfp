@@ -1,11 +1,11 @@
 import { ILlamaParseProcessingService } from '@/lib/interfaces/llamaparse-service';
-import { 
-  LlamaParseRequest, 
-  LlamaParseResponse, 
-  LlamaParseOptions 
+import {
+  LlamaParseRequest,
+  LlamaParseResponse,
+  LlamaParseOptions
 } from '@/lib/validators/llamaparse';
 import { fileValidator } from './file-validator';
-import { llamaParseClient } from './llamaparse-client';
+import { parserFactory } from '@/lib/parsers/parser-factory';
 import { documentStoreService } from './document-store-service';
 import { ValidationError } from '@/lib/errors/api-errors';
 
@@ -29,8 +29,9 @@ export class LlamaParseProcessingService implements ILlamaParseProcessingService
         complexTables: request.preset === 'complexTables',
       };
 
-      // Step 3: Parse the file using LlamaParse
-      const parseResult = await llamaParseClient.parseFile(request.file, parseOptions);
+      // Step 3: Parse the file using the appropriate parser
+      const parser = parserFactory.getParser();
+      const parseResult = await parser.parseFile(request.file, parseOptions);
       console.log(`File parsing completed for document: ${parseResult.id}`);
 
       // Step 4: Prepare response with normalized document name
@@ -97,7 +98,7 @@ export class LlamaParseProcessingService implements ILlamaParseProcessingService
         lastProcessed: documentStats.lastProcessed,
         serviceStatus: {
           fileValidator: true, // Always available
-          llamaParseClient: llamaParseClient.isConfigured(),
+          llamaParseClient: parserFactory.getParser().isConfigured(),
           documentStore: documentStoreService.isAvailable(),
         },
       };
@@ -124,8 +125,9 @@ export class LlamaParseProcessingService implements ILlamaParseProcessingService
   } {
     const issues: string[] = [];
 
-    if (!llamaParseClient.isConfigured()) {
-      issues.push('LlamaParse service is not configured');
+    const parser = parserFactory.getParser();
+    if (!parser.isConfigured()) {
+      issues.push('Document parser is not configured');
     }
 
     if (!documentStoreService.isAvailable()) {
