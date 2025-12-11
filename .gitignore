@@ -41,3 +41,6 @@ yarn-error.log*
 next-env.d.ts
 .devcontainer
 CLAUDE.md
+.pnpm-store
+scratch/
+tmp/

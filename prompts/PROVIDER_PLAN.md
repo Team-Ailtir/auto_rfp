@@ -1024,26 +1024,126 @@ BEDROCK_KNOWLEDGE_BASE_ROLE_ARN=arn:aws:iam::...  # Optional
 **Success Criteria**: All existing LlamaCloud functionality works through new provider interface
 
 #### Task 5: Implement Bedrock Provider
-**File**: `lib/providers/bedrock-provider.ts`
+**Files**:
+- `lib/providers/bedrock-provider.ts` - Main provider implementation
+- `lib/providers/bedrock-retriever.ts` - Custom retriever implementation
 
-**Dependencies**:
+**Dependencies** (✅ INSTALLED in Task 0.0):
 ```bash
 pnpm add @aws-sdk/client-bedrock-agent
+pnpm add @aws-sdk/client-bedrock-agent-runtime
 ```
 
-**Deliverables**:
-- `BedrockProvider` class implementing `IDocumentIndexProvider`
-- Use AWS SDK (`BedrockAgentClient`) for API calls
-- Implement all interface methods:
-  - `verifyCredentialsAndFetchProjects` - list Knowledge Bases
-  - `verifyProjectAccess` - verify KB access
-  - `fetchPipelinesForProject` - list data sources
-  - `fetchDocumentsForPipeline` - return empty array (Bedrock doesn't expose individual docs)
-  - `createRetriever` - return `BedrockKnowledgeBaseRetriever` from llamaindex
-- Map AWS types to common types
-- Error handling for AWS API errors
+**⚠️ IMPORTANT FINDING FROM TASK 0.0**:
+`BedrockKnowledgeBaseRetriever` does NOT exist in llamaindex 0.10.3. We must implement a custom retriever that extends `BaseRetriever` from llamaindex.
 
-**Success Criteria**: Can connect to Bedrock KB and query with LlamaIndex SDK
+**Deliverables**:
+
+**Part A: Custom Bedrock Retriever** (`lib/providers/bedrock-retriever.ts`):
+```typescript
+import { BaseRetriever, NodeWithScore, TextNode } from 'llamaindex';
+import {
+  BedrockAgentRuntimeClient,
+  RetrieveCommand,
+  RetrievalResultContent
+} from '@aws-sdk/client-bedrock-agent-runtime';
+
+export interface BedrockRetrieverConfig {
+  knowledgeBaseId: string;
+  region: string;
+  topK?: number;
+  credentials?: {
+    accessKeyId: string;
+    secretAccessKey: string;
+  };
+}
+
+export class BedrockKnowledgeBaseRetriever extends BaseRetriever {
+  private client: BedrockAgentRuntimeClient;
+  private knowledgeBaseId: string;
+  private topK: number;
+
+  constructor(config: BedrockRetrieverConfig) {
+    super();
+    this.knowledgeBaseId = config.knowledgeBaseId;
+    this.topK = config.topK || 10;
+
+    this.client = new BedrockAgentRuntimeClient({
+      region: config.region,
+      credentials: config.credentials,
+    });
+  }
+
+  async retrieve(query: string): Promise<NodeWithScore[]> {
+    const command = new RetrieveCommand({
+      knowledgeBaseId: this.knowledgeBaseId,
+      retrievalQuery: { text: query },
+      retrievalConfiguration: {
+        vectorSearchConfiguration: {
+          numberOfResults: this.topK,
+        },
+      },
+    });
+
+    const response = await this.client.send(command);
+    return this.transformResults(response.retrievalResults || []);
+  }
+
+  private transformResults(results: any[]): NodeWithScore[] {
+    return results.map((result, index) => {
+      // Extract text content from Bedrock result
+      const content = result.content?.text || '';
+      const score = result.score || 0;
+
+      // Create TextNode matching LlamaIndex format
+      const node = new TextNode({
+        text: content,
+        metadata: {
+          source: result.location?.s3Location?.uri || 'unknown',
+          knowledgeBaseId: this.knowledgeBaseId,
+          resultId: result.metadata?.['x-amz-bedrock-kb-chunk-id'] || `result_${index}`,
+        },
+      });
+
+      return {
+        node,
+        score,
+      };
+    });
+  }
+}
+```
+
+**Part B: Bedrock Provider** (`lib/providers/bedrock-provider.ts`):
+- `BedrockProvider` class implementing `IDocumentIndexProvider`
+- Use AWS SDK clients for management operations:
+  - `BedrockAgentClient` for listing KBs and data sources
+  - Custom retriever for queries
+- Implement all interface methods:
+  - `verifyCredentialsAndFetchProjects` - list Knowledge Bases using `ListKnowledgeBasesCommand`
+  - `verifyProjectAccess` - verify KB access using `GetKnowledgeBaseCommand`
+  - `fetchPipelinesForProject` - list data sources using `ListDataSourcesCommand`
+  - `fetchDocumentsForPipeline` - return empty array (Bedrock doesn't expose individual docs)
+  - `createRetriever` - return custom `BedrockKnowledgeBaseRetriever` instance
+- Map AWS types to common types:
+  - `KnowledgeBase` → `IndexProject`
+  - `DataSource` → `IndexPipeline`
+- Error handling for AWS API errors
+- Region configuration support
+
+**Implementation Notes**:
+1. Credentials come from environment variables (AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY)
+2. Region comes from AWS_REGION env var or organization.indexRegion
+3. Knowledge Base ID stored in organization.indexProjectId
+4. Data Source IDs stored in ProjectIndex.indexId
+
+**Success Criteria**:
+- Can list Knowledge Bases from AWS account
+- Can list data sources for a Knowledge Base
+- Custom retriever successfully queries Bedrock and returns results
+- Results integrate with LlamaIndex query engines
+
+**Time Estimate**: 4-5 hours (includes custom retriever implementation)
 
 ---
 
@@ -1529,7 +1629,8 @@ auto_rfp/
 │   ├── providers/
 │   │   ├── provider-factory.ts             # NEW: Factory
 │   │   ├── llamacloud-provider.ts          # MOVED/REFACTORED: from services/
-│   │   └── bedrock-provider.ts             # NEW: Bedrock implementation
+│   │   ├── bedrock-provider.ts             # NEW: Bedrock implementation
+│   │   └── bedrock-retriever.ts            # NEW: Custom Bedrock retriever
 │   ├── services/
 │   │   ├── index-connection-service.ts     # RENAMED: from llamacloud-connection-service
 │   │   ├── response-generation-service.ts  # UPDATED: Use provider factory
@@ -1619,16 +1720,16 @@ If issues arise after deployment:
 
 | Phase | Tasks | Estimated Time | Notes |
 |-------|-------|----------------|-------|
-| Task 0.0: Pre-Flight | SDK Verification | 0.5-1 hour | Verify Bedrock compatibility |
+| Task 0.0: Pre-Flight | SDK Verification | ✅ 1 hour | COMPLETED - Bedrock requires custom retriever |
 | Phase 0: Test Baseline | 0.1-0.7 | 4-6 hours | Setup Vitest, write baseline tests |
 | Phase 1: Foundation | 1-3 | 2-3 hours | Interface, factory, env config |
-| Phase 2: Providers | 4-5 | 6-8 hours | Refactor LlamaCloud, implement Bedrock |
+| Phase 2: Providers | 4-5 | 8-10 hours | LlamaCloud refactor + Bedrock with custom retriever |
 | Phase 3: Data Layer | 6 | 2-3 hours | Database migration |
 | Phase 4: Services/API | 7-10 | 5-6 hours | Update all services and API routes |
 | Phase 5: UI/Testing | 11-15 | 6-8 hours | UI updates, provider testing, docs |
 | Task 16: Update Tests | Test refactor | 2-3 hours | Update Phase 0 tests for new architecture |
 | Task 17: Rollback Test | Rollback procedure | 1-2 hours | Verify rollback works |
-| **Subtotal** | **25 tasks** | **29-40 hours** | Core implementation |
+| **Subtotal** | **25 tasks** | **31-43 hours** | Core implementation (+2 hours for custom retriever) |
 
 ### Additional Time (Not in Tasks)
 
@@ -1641,18 +1742,24 @@ If issues arise after deployment:
 
 ### Total Realistic Estimate
 
-**35-50 hours** (conservative range accounting for unknowns)
+**37-53 hours** (conservative range accounting for unknowns and custom retriever)
 
-**Recommended Planning**: Budget 40 hours (~1 week) for comfortable completion with testing
+**Recommended Planning**: Budget 42-45 hours (~1 week) for comfortable completion with testing
+
+**Note**: Estimate increased by 2 hours due to custom Bedrock retriever implementation (no built-in support in llamaindex)
 
 ## Dependencies
 
 ### NPM Packages to Add
 
-**Task 0.0 (Pre-Flight)**:
+**Task 0.0 (Pre-Flight)** - ✅ COMPLETED:
 ```bash
-pnpm add @aws-sdk/client-bedrock-agent
-# Verify llamaindex version
+# Already installed:
+@aws-sdk/client-bedrock-agent v3.948.0
+@aws-sdk/client-bedrock-agent-runtime v3.948.0
+
+# Verified:
+llamaindex v0.10.3 (no built-in Bedrock support - custom retriever required)
 ```
 
 **Phase 0 (Testing)**:
@@ -1662,16 +1769,19 @@ pnpm add -D @testing-library/react @testing-library/jest-dom
 pnpm add -D vitest-mock-extended  # For mocking Prisma
 ```
 
-**No additional packages needed for Phase 2** - AWS SDK already installed in Task 0.0
+**No additional packages needed for Phase 2** - AWS SDK packages already installed in Task 0.0
 
 ### AWS Prerequisites (for Bedrock testing)
-- AWS account with Bedrock enabled
-- Knowledge Base created
-- S3 bucket with sample documents
+- AWS account with Bedrock enabled in target region
+- Knowledge Base created with data sources configured
+- S3 bucket with sample documents ingested
 - IAM user/role with permissions:
-  - `bedrock:*`
-  - `s3:GetObject`
-  - `aoss:*` (OpenSearch Serverless)
+  - `bedrock-agent:ListKnowledgeBases` (management operations)
+  - `bedrock-agent:GetKnowledgeBase` (management operations)
+  - `bedrock-agent:ListDataSources` (management operations)
+  - `bedrock-agent-runtime:Retrieve` (query operations - CRITICAL for custom retriever)
+  - `s3:GetObject` (for document access)
+  - `aoss:APIAccessAll` (OpenSearch Serverless access)
 
 ## Post-Implementation
 
