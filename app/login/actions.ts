@@ -18,8 +18,19 @@ export async function signInWithMagicLink(formData: FormData) {
   }
 
   // Get the origin for creating the full redirect URL
-  // In production, you should set NEXT_PUBLIC_APP_URL in your environment variables
-  const origin = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  // Use Vercel URL for preview deployments, otherwise use NEXT_PUBLIC_APP_URL
+  const getOrigin = () => {
+    // Check if we're on Vercel (preview or production)
+    if (process.env.VERCEL_URL) {
+      // For Vercel deployments, use the deployment URL
+      const protocol = process.env.VERCEL_ENV === 'development' ? 'http' : 'https'
+      return `${protocol}://${process.env.VERCEL_URL}`
+    }
+    // For local development or custom deployments
+    return process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  }
+
+  const origin = getOrigin()
   
   const { error } = await supabase.auth.signInWithOtp({
     email,
