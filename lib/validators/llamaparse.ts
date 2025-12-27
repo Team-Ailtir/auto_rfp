@@ -8,6 +8,7 @@ export const LlamaParseRequestSchema = z.object({
   file: z.instanceof(File, { message: 'Valid file is required' }),
   fast_mode: z.boolean().optional().default(false),
   premium_mode: z.boolean().optional().default(false),
+  agentic_mode: z.boolean().optional().default(true),
   preset: z.enum(['complexTables']).optional(),
   documentName: z.string().optional(),
 });
@@ -17,6 +18,7 @@ export const LlamaParseOptionsSchema = z.object({
   fastMode: z.boolean().default(false),
   premiumMode: z.boolean().default(false),
   complexTables: z.boolean().default(false),
+  agenticMode: z.boolean().default(false),
 });
 
 // File validation schema

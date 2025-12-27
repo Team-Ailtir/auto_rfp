@@ -85,13 +85,18 @@ export class OpenAIQuestionExtractor implements IAIQuestionExtractor {
 
       // Parse and validate the JSON response
       const rawData = JSON.parse(assistantMessage);
-      
-      // Expect format: { "eligibility": ["requirement 1", "requirement 2", ...] }
-      if (!rawData.eligibility || !Array.isArray(rawData.eligibility)) {
-        throw new AIServiceError('Invalid eligibility format from AI service');
+
+      // Handle cases where no eligibility criteria are found
+      // The AI may return {}, { "eligibility": null }, or { "eligibility": [] }
+      const eligibility = rawData.eligibility;
+
+      // If eligibility is missing or not an array, return empty array (document has no eligibility criteria)
+      if (!eligibility || !Array.isArray(eligibility)) {
+        console.log('No eligibility criteria found in document, returning empty array');
+        return [];
       }
 
-      return rawData.eligibility.filter((item: any) => typeof item === 'string' && item.trim().length > 0);
+      return eligibility.filter((item: any) => typeof item === 'string' && item.trim().length > 0);
     } catch (error) {
       if (error instanceof SyntaxError) {
         throw new AIServiceError('Invalid JSON response from AI service for eligibility extraction');

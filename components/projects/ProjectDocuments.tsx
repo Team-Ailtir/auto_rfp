@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -47,6 +47,7 @@ interface ProjectIndex {
 
 interface ProjectDocumentsProps {
   projectId: string;
+  refreshKey?: number;
 }
 
 // Styling functions from the global DocumentList
@@ -110,7 +111,7 @@ const getPillText = (fileType: string): string => {
 
 const INITIAL_DOCUMENTS_SHOWN = 12;
 
-export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
+export function ProjectDocuments({ projectId, refreshKey }: ProjectDocumentsProps) {
   const [documents, setDocuments] = useState<ProjectDocument[]>([]);
   const [projectIndexes, setProjectIndexes] = useState<ProjectIndex[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -136,21 +137,21 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
     return fileTypeMap[extension] || 'other';
   };
 
-  const fetchProjectDocuments = async () => {
+  const fetchProjectDocuments = useCallback(async () => {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       // First get the project indexes
       const indexesResponse = await fetch(`/api/projects/${projectId}/indexes`);
-      
+
       if (!indexesResponse.ok) {
         const errorData = await indexesResponse.json();
         throw new Error(errorData.error || 'Failed to fetch project indexes');
       }
-      
+
       const indexesData = await indexesResponse.json();
-      
+
       if (!indexesData.organizationConnected) {
         setOrganizationConnected(false);
         setProjectIndexes([]);
@@ -176,17 +177,17 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
 
       // Fetch all organization documents
       const documentsResponse = await fetch(`/api/llamacloud/documents?organizationId=${projectData.organizationId}`);
-      
+
       if (!documentsResponse.ok) {
         const errorData = await documentsResponse.json();
         throw new Error(errorData.error || 'Failed to fetch documents');
       }
-      
+
       const documentsData = await documentsResponse.json();
-      
+
       // Filter documents to only include those from selected indexes
       const selectedIndexIds = new Set(indexesData.currentIndexes.map((index: ProjectIndex) => index.id));
-      const filteredDocuments = (documentsData.documents || []).filter((doc: any) => 
+      const filteredDocuments = (documentsData.documents || []).filter((doc: any) =>
         selectedIndexIds.has(doc.pipelineId)
       ).map((doc: any) => ({
         ...doc,
@@ -208,16 +209,16 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
         const indexNames: string[] = Array.from(new Set(filteredDocuments.map((doc: ProjectDocument) => doc.indexName)));
         const initialExpanded: Record<string, boolean> = {};
         const initialShown: Record<string, number> = {};
-        
+
         indexNames.forEach((indexName, index) => {
           initialExpanded[indexName] = index === 0; // Expand first index
           initialShown[indexName] = INITIAL_DOCUMENTS_SHOWN;
         });
-        
+
         setExpandedIndexes(initialExpanded);
         setShownDocuments(initialShown);
       }
-      
+
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch project documents';
       setError(errorMessage);
@@ -225,11 +226,11 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [projectId]);
 
   useEffect(() => {
     fetchProjectDocuments();
-  }, [projectId]);
+  }, [projectId, refreshKey]);
 
   const handleRefresh = () => {
     fetchProjectDocuments();
@@ -429,7 +430,7 @@ export function ProjectDocuments({ projectId }: ProjectDocumentsProps) {
               Project Documents
             </CardTitle>
             <CardDescription>
-              {documents.length} documents available from {projectIndexes.length} selected {projectIndexes.length === 1 ? 'index' : 'indexes'}
+              {documents.length} documents from {projectIndexes.length > 0 ? projectIndexes[0].name : 'no index selected'}
             </CardDescription>
           </div>
           <Button variant="outline" size="sm" onClick={handleRefresh}>

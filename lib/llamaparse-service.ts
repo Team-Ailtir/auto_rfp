@@ -8,6 +8,7 @@ export interface ParseOptions {
   fastMode?: boolean;
   premiumMode?: boolean;
   complexTables?: boolean;
+  agenticMode?: boolean;
 }
 
 /**
@@ -53,9 +54,13 @@ export class LlamaParseService {
       const { LlamaParseReader } = llamaIndexModule;
       
       // Step 4: Configure options based on the mode
+      // Default to agentic mode for better multi-sheet/multi-page parsing
+      const useAgentic = options.agenticMode !== false;
+
       let readerOptions: Record<string, any> = {
         apiKey: this.apiKey,
-        resultType: "markdown"
+        resultType: "markdown",
+        useAgenticParse: useAgentic,
       };
       
       // Add mode-specific options

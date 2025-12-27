@@ -22,7 +22,7 @@ export function NoQuestionsAvailable({ projectId, onUploadClick }: NoQuestionsAv
   };
 
   const handleAddManuallyClick = () => {
-    router.push(`/questions/create?projectId=${projectId}`);
+    router.push(`/projects/${projectId}/questions/create`);
   };
 
   const sampleFileUrl = "https://qluspotebpidccpfbdho.supabase.co/storage/v1/object/public/sample-files//RFP%20-%20Launch%20Services%20for%20Medium-Lift%20Payloads.pdf";

@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useCallback } from "react"
 import { useSearchParams } from "next/navigation"
 import { ProjectIndexSelector } from "@/components/projects/ProjectIndexSelector"
 import { ProjectDocuments } from "@/components/projects/ProjectDocuments"
@@ -12,6 +13,13 @@ export function DocumentsSection({ projectId: propProjectId }: DocumentsSectionP
   const searchParams = useSearchParams()
   // Use prop if provided, otherwise fall back to search params
   const projectId = propProjectId || searchParams.get("projectId")
+
+  // Counter to trigger ProjectDocuments refresh when index changes
+  const [documentsRefreshKey, setDocumentsRefreshKey] = useState(0)
+
+  const handleSaveSuccess = useCallback(() => {
+    setDocumentsRefreshKey(prev => prev + 1)
+  }, [])
 
   if (!projectId) {
     return (
@@ -27,12 +35,12 @@ export function DocumentsSection({ projectId: propProjectId }: DocumentsSectionP
   return (
     <div className="space-y-6 p-12">
       <h2 className="text-2xl font-bold">Documents</h2>
-      
+
       {/* Project Index Selection */}
-      <ProjectIndexSelector projectId={projectId} />
-      
-      {/* Project Documents from Selected Indexes */}
-      <ProjectDocuments projectId={projectId} />
+      <ProjectIndexSelector projectId={projectId} onSaveSuccess={handleSaveSuccess} />
+
+      {/* Project Documents from Selected Index */}
+      <ProjectDocuments projectId={projectId} refreshKey={documentsRefreshKey} />
     </div>
   )
 }
