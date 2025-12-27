@@ -24,7 +24,7 @@ export default function LoginPage() {
 
   
 
-              <form action={signInWithMagicLink} method="POST" className="space-y-6">
+              <form action={signInWithMagicLink} className="space-y-6">
                 <div>
                   <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
                     Email address
