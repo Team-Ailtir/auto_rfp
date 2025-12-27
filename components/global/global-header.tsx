@@ -36,14 +36,19 @@ function GlobalHeaderContent() {
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const { currentOrganization, currentProject } = useOrganization();
   
-  // Fetch user email on component mount
+  // Fetch user email on component mount (skip on public pages)
   useEffect(() => {
+    // Don't fetch user on public pages
+    if (pathname === '/' || pathname === '/login' || pathname === '/signup') {
+      return;
+    }
+
     const fetchUserEmail = async () => {
       const email = await getCurrentUserEmail();
       setUserEmail(email);
     };
     fetchUserEmail();
-  }, []);
+  }, [pathname]);
 
   // Build dynamic breadcrumbs based on current route
   const buildBreadcrumbs = (): BreadcrumbItem[] => {
