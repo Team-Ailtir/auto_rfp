@@ -1,17 +1,10 @@
 import { NextRequest } from 'next/server';
 import { apiHandler } from '@/lib/middleware/api-handler';
-import { env, validateEnv, getLlamaCloudApiKey } from '@/lib/env';
+import { env, getLlamaCloudApiKey } from '@/lib/env';
 import { organizationService } from '@/lib/organization-service';
 
 export async function GET(request: NextRequest) {
   return apiHandler(async () => {
-    // Validate environment variables
-    if (!validateEnv()) {
-      return new Response(
-        JSON.stringify({ error: 'LlamaCloud API key not configured in environment variables' }),
-        { status: 500, headers: { 'Content-Type': 'application/json' } }
-      );
-    }
 
     try {
       // Get current user to determine which API key to use
