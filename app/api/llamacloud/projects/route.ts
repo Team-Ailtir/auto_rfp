@@ -13,14 +13,14 @@ export async function GET(request: NextRequest) {
 
       // Fetch projects and organizations from LlamaCloud
       const [projectsResponse, organizationsResponse] = await Promise.all([
-        fetch(`${env.LLAMACLOUD_API_URL}/api/v1/projects`, {
+        fetch(`${env.get('LLAMACLOUD_API_URL')!}/api/v1/projects`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${apiKey}`,
             'Content-Type': 'application/json',
           },
         }),
-        fetch(`${env.LLAMACLOUD_API_URL}/api/v1/organizations`, {
+        fetch(`${env.get('LLAMACLOUD_API_URL')!}/api/v1/organizations`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${apiKey}`,

@@ -54,12 +54,12 @@ export class LlamaParseService {
       const useAgentic = options.agenticMode !== false;
 
       // LlamaParseReader uses protocol + hostname format (no /api/v1)
-      // env.LLAMACLOUD_API_URL is already in this format
+      // env.get('LLAMACLOUD_API_URL') is already in this format
       let readerOptions: Record<string, any> = {
         apiKey: this.apiKey,
         resultType: "markdown",
         useAgenticParse: useAgentic,
-        baseUrl: env.LLAMACLOUD_API_URL,
+        baseUrl: env.get('LLAMACLOUD_API_URL')!,
       };
       
       // Add mode-specific options
